@@ -15,6 +15,7 @@ def get_euclidean_similarity(data):
                 the median of the similarities with other data points
     """
     N, M = data.shape
+    data = data.astype('float') # just making sure that it is float
     similarity = np.zeros((N, N))
     for i in xrange(N):
         for j in xrange(N):
