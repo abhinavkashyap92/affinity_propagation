@@ -27,6 +27,8 @@ class AffinityProp(object):
             matrices for all the data points
         """
         N, N = self.s.shape
+
+        #R UPDATE STEP
         a_plus_s = self.a + self.s
         first_max = np.max(a_plus_s, axis=1)
         first_max_indices = np.argmax(a_plus_s, axis=1)
@@ -36,7 +38,15 @@ class AffinityProp(object):
         r = self.s - first_max
         r[range(N), first_max_indices] = self.s[range(N), first_max_indices] - second_max[range(N)]
 
-        a = np.zeros((N, N))
+        # A UPDATE STEP
+        rp = np.maximum(r, 0)
+        np.fill_diagonal(rp, np.diag(r))
+        a = np.repeat(np.sum(rp, axis=0), N).reshape(N,N).T - rp
+        da = np.diag(a)
+        a = np.minimum(a, 0)
+        np.fill_diagonal(a, da)
+
+        print a
         return r, a
 
     def solve(self):
@@ -68,3 +78,7 @@ if __name__ == "__main__":
     correct_responsibility = np.array([[-2, -1, 1], [-2, -1, 1], [-2, -1, 1]], dtype='float')
     is_responsibility_correct = np.allclose(correct_responsibility, affinity_prop.r)
     print "Is the responsiblity correct %s" % (is_responsibility_correct, )
+
+    correct_availability =  np.array([[0, -1, 0], [-2, 0, 0], [-2, -1, 2]])
+    is_availability_correct = np.allclose(correct_availability, affinity_prop.a)
+    print "Is the availability correct %s" % (is_availability_correct)
