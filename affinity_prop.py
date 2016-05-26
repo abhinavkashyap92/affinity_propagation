@@ -23,21 +23,18 @@ class AffinityProp(object):
 
     def _step(self):
         """
-            This is meant ot return the new Availability and repsonsibility matrices
-            for all the data points
+            This is meant ot return the new Availability and repsonsibility
+            matrices for all the data points
         """
         N, N = self.s.shape
         a_plus_s = self.a + self.s
         first_max = np.max(a_plus_s, axis=1)
         first_max_indices = np.argmax(a_plus_s, axis=1)
         first_max = np.repeat(first_max, N).reshape(N, N)
-        for i in xrange(N):
-            a_plus_s[i][first_max_indices[i]] = -np.inf
+        a_plus_s[range(N), first_max_indices] = -np.inf
         second_max =  np.max(a_plus_s, axis=1)
         r = self.s - first_max
-        for i in xrange(N):
-            r[i][first_max_indices[i]] = self.s[i][first_max_indices[i]] - second_max[i]
-
+        r[range(N), first_max_indices] = self.s[range(N), first_max_indices] - second_max[range(N)]
 
         a = np.zeros((N, N))
         return r, a
