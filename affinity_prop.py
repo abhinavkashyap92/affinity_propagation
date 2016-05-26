@@ -5,7 +5,7 @@ class AffinityProp(object):
         Implementing the affinity propagation algorithm
     """
     def __init__(self, similarity_matrix, max_iteration=200, num_iter=5,
-    alpha=0.5):
+    alpha=0.5, verbose=True, print_every=100):
         """
             similarity_matrix: N * N matrix containing similarities
             max_iteration: The maximum number of iterations to perfrom for clustering
@@ -15,6 +15,8 @@ class AffinityProp(object):
         self.s = similarity_matrix
         self.max_iteration = max_iteration
         self.alpha = alpha
+        self.verbose = verbose
+        self.print_every = print_every
 
         #  INIITALISE THE RESPONSIBILITY AND THE AVAILABILITY MATRICES
         N, N = self.s.shape
@@ -27,6 +29,8 @@ class AffinityProp(object):
             matrices for all the data points
         """
         N, N = self.s.shape
+        old_r = self.r
+        old_a = self.a
 
         #R UPDATE STEP
         a_plus_s = self.a + self.s
@@ -37,6 +41,7 @@ class AffinityProp(object):
         second_max =  np.max(a_plus_s, axis=1)
         r = self.s - first_max
         r[range(N), first_max_indices] = self.s[range(N), first_max_indices] - second_max[range(N)]
+        r = self.alpha * old_r + (1 - self.alpha) * r
 
         # A UPDATE STEP
         rp = np.maximum(r, 0)
@@ -45,8 +50,8 @@ class AffinityProp(object):
         da = np.diag(a)
         a = np.minimum(a, 0)
         np.fill_diagonal(a, da)
+        a = self.alpha * old_a + (1 - self.alpha) * a
 
-        print a
         return r, a
 
     def solve(self):
@@ -56,13 +61,48 @@ class AffinityProp(object):
             rules and more options
         """
         for i in xrange(self.max_iteration):
-            old_r = self.r
-            old_a = self.a
+
+            if self.verbose and i % self.print_every is 0:
+                print "processing iteration %d" % (i, )
             self.r, self.a = self._step()
 
-            # This does something like the adagrad upgrade
-            self.r = self.alpha * self.r + (1 - self.alpha) * old_r
-            self.a = self.alpha * self.a + (1 - self.alpha) * old_a
+        e = self.r + self.a
+        N, N = e.shape
+
+        # NOTE: THIS IS ACCORDING TO THE PAPER
+        # THIS IS NOT REMOTELY RELATED TO SCIKIT LEARN
+        # SO I REALLY CANT COMPARE MY RESULTS TO SCIKIT LEARN BEYOND THIS POINT
+
+
+
+        # I will contain the index of the data point that will be an exemplar
+        # For example 40 and 55 of say 60 points may serve as the exemplars
+        I = np.where(np.diag(e) > 0)[0]
+        K = len(I)
+
+        # Select all the rows of S where column_index = 40 and 55
+        c = self.s[:, I]
+        # For every data point chose the exemplar that has maximum similarity with it
+        # For example 1st data point may have maximum similarity with only 44
+        # 2nd data point may have max similarity with 55
+        # One explanation of why this may be done is to ensure that kth data
+        # point not only maximises the sum a+k but also the similarity that it
+        # has with i
+        # so every c will be either 0 or 1 (considering only 2 exemplars are there)
+        c = np.argmax(c, axis=1)
+
+        # Make the c[exemplar_1] = 0 and c[examplar_1] = 1
+        c[I] = np.arange(0, K)
+
+        # Get back the index to the original data set
+        # say c= [0, 1, 1, 0]
+        # 0th exemplar point is 40 in the original data and 1 is 55
+        # mapping from c -> I is done like this in numpy
+        idx = I[c]
+
+        exemplar_indices = I
+        exemplar_assignments =  idx
+        return exemplar_indices, exemplar_assignments
 
 
 if __name__ == "__main__":

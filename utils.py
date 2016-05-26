@@ -1,6 +1,6 @@
 import numpy as np
 
-def euclidean_distance(data, square=True):
+def euclidean_distance(data, squared=True):
     """
         ARGS:
             INPUT:
@@ -16,23 +16,34 @@ def euclidean_distance(data, square=True):
     N, M = data.shape
     data = data.astype('float') # just making sure that it is float
     data_copy = data.copy()
-    similarity = np.zeros((N, N))
+    distance = np.zeros((N, N))
 
     data_square = np.sum(np.square(data), axis=1)
     data_copy_square = np.sum(np.square(data_copy), axis=1)
     multiply = np.dot(data, data_copy.T)
-    similarity = data_square[:, np.newaxis] + data_copy_square - (2 * multiply)
+    distance = data_square[:, np.newaxis] + data_copy_square - (2 * multiply)
 
-    if not square:
-        similarity = np.sqrt(similarity)
+    if not squared:
+        distance = np.sqrt(distance)
 
-    return similarity
+    return distance
 
 
 if __name__ == "__main__":
     # Testing the euclidean similarity with simple matrices
+
     data = np.array([[1, 2, 3, 4], [5, 6, 7, 8]], dtype='float')
+    N, M = data.shape
     correct_output = np.array([[0.0, 8.0], [8.0, 0.0]])
-    euclidean_similarity = euclidean_distance(data, square=False)
-    print euclidean_similarity
-    print "Are the two arrays equal %s" % (np.allclose(euclidean_similarity, correct_output),)
+    similarity = euclidean_distance(data, square=False)
+    print "Are the two similarities equal %s" % (np.allclose(similarity, correct_output),)
+
+    # Filling the diagonal of the euclidean distance
+    # to the median but not including the self similarity points themselves
+    # Using the masked array to find the median of the similarities
+    masked_array = np.zeros((N, N), dtype='Bool')
+    np.fill_diagonal(masked_array, True) # make the diagonals invalid
+    ma_similarity = np.ma.masked_array(similarity, masked_array)
+    np.fill_diagonal(similarity, np.ma.median(ma_similarity))
+    correct_similarity_with_median = np.array([[8.0, 8.0], [8.0, 8.0]])
+    print "Is similarities with medians equal %s" % (np.allclose(similarity, correct_similarity_with_median))
