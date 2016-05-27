@@ -3,9 +3,6 @@ from affinity_prop import *
 from utils import *
 
 from sklearn.datasets.samples_generator import make_blobs
-from sklearn.cluster import AffinityPropagation
-from sklearn.metrics import euclidean_distances
-from sklearn.cluster.affinity_propagation_ import affinity_propagation
 
 if __name__ == "__main__":
 
@@ -25,4 +22,4 @@ if __name__ == "__main__":
 
     # RESULTS
     # THE INDICES OF THE EXEMPLARS IS 4 21 AND 22
-    # THERE ARE 19, 20, 21 ELEMENTS IN EACH CLUSTER
+    # THERE ARE 19, 20, 21 ELEMENTS IN EACH CLUSTER INCLUDING THE EXEMPLAR
