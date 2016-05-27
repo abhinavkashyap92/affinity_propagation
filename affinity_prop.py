@@ -86,7 +86,7 @@ class AffinityProp(object):
         # For example 1st data point may have maximum similarity with only 44
         # 2nd data point may have max similarity with 55
         # One explanation of why this may be done is to ensure that kth data
-        # point not only maximises the sum a+k but also the similarity that it
+        # point not only maximises the sum a+r but also the similarity that it
         # has with i
         # so every c will be either 0 or 1 (considering only 2 exemplars are there)
         c = np.argmax(c, axis=1)
